@@ -4,8 +4,8 @@ import tailwindcss from "@tailwindcss/vite";
 import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
-  // Custom domain (vamsikumardusanapudi.dev) serves from root
-  base: "/",
+  // GitHub Pages serves at /vamsikumarportfolio/
+  base: "/vamsikumarportfolio/",
   plugins: [react(), tailwindcss(), tsconfigPaths()],
   build: {
     outDir: "dist",
