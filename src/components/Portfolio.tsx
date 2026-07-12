@@ -8,9 +8,9 @@ import {
 import { FaJava } from "react-icons/fa";
 import { VscVscode } from "react-icons/vsc";
 import { Code2, Database, Wrench, Sparkles, Server, Brain, Network, Orbit } from "lucide-react";
-const projectAttendance = "/project-attendance.png";
-const projectHireflow = "/project-hireflow.png";
-const projectBooknest = "/project-booknest.png";
+import projectAttendance from "@/assets/project-attendance.png";
+import projectHireflow from "@/assets/project-hireflow.png";
+import projectBooknest from "@/assets/project-booknest.png";
 
 function OracleIcon({ size = 16, className }: { size?: number; className?: string }) {
   return (
