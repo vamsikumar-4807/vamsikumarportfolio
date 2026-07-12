@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ComponentType } from "react";
-import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 import {
   SiHtml5, SiCss, SiJavascript, SiPython, SiMysql, SiGit, SiGithub,
@@ -211,20 +211,32 @@ const CERTS = [
 function CursorGlow() {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    let rafId = 0;
+    let tx = -500, ty = -500;
     const onMove = (e: MouseEvent) => {
-      if (ref.current) {
-        ref.current.style.transform = `translate(${e.clientX - 250}px, ${e.clientY - 250}px)`;
-      }
+      tx = e.clientX - 250;
+      ty = e.clientY - 250;
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(() => {
+        if (ref.current) {
+          // Direct style write — no CSS transition, no React re-render
+          ref.current.style.transform = `translate(${tx}px,${ty}px)`;
+        }
+      });
     };
-    window.addEventListener("mousemove", onMove);
-    return () => window.removeEventListener("mousemove", onMove);
+    window.addEventListener("mousemove", onMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      cancelAnimationFrame(rafId);
+    };
   }, []);
   return (
     <div
       ref={ref}
       aria-hidden
-      className="pointer-events-none fixed left-0 top-0 z-[1] h-[500px] w-[500px] rounded-full opacity-50 mix-blend-screen blur-3xl transition-transform duration-300 ease-out hidden md:block"
+      className="pointer-events-none fixed left-0 top-0 z-[1] h-[500px] w-[500px] rounded-full opacity-40 mix-blend-screen blur-3xl hidden md:block"
       style={{
+        willChange: "transform",
         background:
           "radial-gradient(circle, oklch(0.65 0.3 285 / 0.45), oklch(0.78 0.16 200 / 0.15) 40%, transparent 70%)",
       }}
@@ -234,26 +246,30 @@ function CursorGlow() {
 
 function BgVideo() {
   return (
-    <div className="fixed inset-0 z-0 overflow-hidden">
+    <div
+      className="fixed inset-0 z-0 overflow-hidden"
+      style={{ contain: "strict", willChange: "transform" }}
+    >
       <video
         autoPlay
         loop
         muted
         playsInline
         preload="auto"
-        className="absolute inset-0 h-full w-full object-cover opacity-50"
+        className="absolute inset-0 h-full w-full object-cover opacity-45"
+        style={{ willChange: "transform" }}
       >
         <source src={VIDEO_URL} type="video/mp4" />
       </video>
-      <div className="absolute inset-0 bg-background/70" />
+      <div className="absolute inset-0 bg-background/75" />
       <div
         className="absolute inset-0"
         style={{
           background:
-            "radial-gradient(ellipse at top, oklch(0.55 0.28 285 / 0.25), transparent 60%), radial-gradient(ellipse at bottom, oklch(0.78 0.16 200 / 0.15), transparent 60%)",
+            "radial-gradient(ellipse at top, oklch(0.55 0.28 285 / 0.22), transparent 60%), radial-gradient(ellipse at bottom, oklch(0.78 0.16 200 / 0.12), transparent 60%)",
         }}
       />
-      <div className="absolute inset-0 grid-bg opacity-30" />
+      <div className="absolute inset-0 grid-bg opacity-25" />
     </div>
   );
 }
@@ -562,16 +578,32 @@ function Tilt({ children, className = "" }: { children: React.ReactNode; classNa
 
 function Hero() {
   const typed = useTyping(TYPING_ROLES);
-  const { scrollY } = useScroll();
-  const y1 = useTransform(scrollY, [0, 600], [0, -80]);
-  const y2 = useTransform(scrollY, [0, 600], [0, -40]);
+  // Direct DOM parallax — no React state updates on scroll, no Framer Motion spring lag
+  const textRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const y = window.scrollY;
+          if (textRef.current) textRef.current.style.transform = `translateY(${y * -0.13}px)`;
+          if (imgRef.current) imgRef.current.style.transform = `translateY(${y * -0.07}px)`;
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <section id="home" className="relative min-h-screen flex items-center pt-28 pb-16 overflow-hidden">
       <FloatingShapes />
       <div className="mx-auto max-w-7xl px-4 md:px-6 relative z-10 w-full">
         <div className="grid lg:grid-cols-[1.2fr_1fr] gap-12 items-center">
-          <motion.div style={{ y: y1 }} className="space-y-6">
+          <div ref={textRef} className="space-y-6" style={{ willChange: "transform" }}>
             <Reveal delay={0.1}>
               <h1 className="font-display text-5xl md:text-6xl lg:text-7xl font-bold leading-[1.05] tracking-tight">
                 Hi, I'm <span className="gradient-text glow-text animate-name-glow">Vamsi Kumar</span>
@@ -624,10 +656,10 @@ function Hero() {
                 </a>
               </div>
             </Reveal>
-          </motion.div>
+          </div>
 
           {/* Profile */}
-          <motion.div style={{ y: y2 }} className="relative flex justify-center lg:justify-end mt-10 md:mt-12 lg:mt-14">
+          <div ref={imgRef} className="relative flex justify-center lg:justify-end mt-10 md:mt-12 lg:mt-14" style={{ willChange: "transform" }}>
             <div className="relative">
               {/* Rotating gradient ring */}
               <div className="absolute inset-0 -m-6 animate-spin-slow opacity-70">
@@ -660,7 +692,7 @@ function Hero() {
                 </div>
               </Tilt>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 
@@ -692,7 +724,7 @@ function About() {
     { v: "2026", l: "Graduating" },
   ];
   return (
-    <section id="about" className="relative py-24 md:py-32">
+    <section id="about" className="relative py-24 md:py-32" style={{ contentVisibility: "auto", containIntrinsicSize: "0 800px" }}>
       <div className="mx-auto max-w-7xl px-4 md:px-6 relative z-10">
         <SectionHeading eyebrow="About" title="Who I Am" />
         <div className="grid lg:grid-cols-2 gap-10 items-start">
@@ -750,7 +782,7 @@ function About() {
 function Skills() {
   const entries = Object.entries(SKILLS);
   return (
-    <section id="skills" className="relative py-24 md:py-32">
+    <section id="skills" className="relative py-24 md:py-32" style={{ contentVisibility: "auto", containIntrinsicSize: "0 900px" }}>
       <div className="mx-auto max-w-7xl px-4 md:px-6 relative z-10">
         <SectionHeading eyebrow="Skills" title="Tech Stack" subtitle="Tools and technologies I work with" />
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 auto-rows-fr">
@@ -802,7 +834,7 @@ function Projects() {
   const filtered = PROJECTS.filter((p) => active === "All" || p.category === active);
 
   return (
-    <section id="projects" className="relative py-24 md:py-32">
+    <section id="projects" className="relative py-24 md:py-32" style={{ contentVisibility: "auto", containIntrinsicSize: "0 1200px" }}>
       <div className="mx-auto max-w-7xl px-4 md:px-6 relative z-10">
         <SectionHeading eyebrow="Projects" title="Featured Work" subtitle="A selection of things I've built" />
 
@@ -899,7 +931,7 @@ function Projects() {
 
 function Education() {
   return (
-    <section id="education" className="relative py-24 md:py-32">
+    <section id="education" className="relative py-24 md:py-32" style={{ contentVisibility: "auto", containIntrinsicSize: "0 800px" }}>
       <div className="mx-auto max-w-7xl px-4 md:px-6 relative z-10">
         <SectionHeading eyebrow="Education" title="Academic Journey" />
         <div className="relative max-w-3xl mx-auto">
@@ -941,7 +973,7 @@ function Education() {
 
 function Certifications() {
   return (
-    <section id="certs" className="relative py-24 md:py-32">
+    <section id="certs" className="relative py-24 md:py-32" style={{ contentVisibility: "auto", containIntrinsicSize: "0 700px" }}>
       <div className="mx-auto max-w-7xl px-4 md:px-6 relative z-10">
         <SectionHeading eyebrow="Credentials" title="Certifications" />
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -1156,20 +1188,42 @@ function Footer() {
 
 export default function Portfolio() {
   const [loaded, setLoaded] = useState(false);
-  const { scrollYProgress } = useScroll();
+  const progressRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     const t = setTimeout(() => setLoaded(true), 900);
     return () => clearTimeout(t);
+  }, []);
+
+  // Scroll progress bar — direct DOM write, no Framer Motion spring overhead
+  useEffect(() => {
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const el = document.documentElement;
+          const progress = el.scrollTop / (el.scrollHeight - el.clientHeight);
+          if (progressRef.current) {
+            progressRef.current.style.transform = `scaleX(${isNaN(progress) ? 0 : progress})`;
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
     <div className="relative min-h-screen text-foreground">
       <PageLoader done={loaded} />
 
-      {/* Scroll progress bar */}
-      <motion.div
-        style={{ scaleX: scrollYProgress }}
+      {/* Scroll progress bar — plain div, RAF-driven, zero spring overhead */}
+      <div
+        ref={progressRef}
         className="fixed top-0 left-0 right-0 z-[60] h-0.5 origin-left bg-gradient-to-r from-primary via-[oklch(0.6_0.26_270)] to-accent"
+        style={{ transform: "scaleX(0)", willChange: "transform" }}
       />
 
       <BgVideo />

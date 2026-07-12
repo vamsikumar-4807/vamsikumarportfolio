@@ -69,8 +69,8 @@
 @layer base {
   * { border-color: var(--color-border); }
   html {
-    scroll-behavior: smooth;
-    /* prevent rubber-band / scroll-chaining lag */
+    /* Removed CSS scroll-behavior: smooth — we use JS scrollIntoView instead,
+       which gives the browser freedom to skip frames during fast flings. */
     overscroll-behavior-y: none;
   }
   body {
@@ -79,11 +79,13 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
+    /* Promote body to its own GPU layer */
+    isolation: isolate;
   }
   ::selection { background: oklch(0.55 0.28 285 / 0.5); color: white; }
 
   /* Custom scrollbar */
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: oklch(0.12 0.04 280); }
   ::-webkit-scrollbar-thumb {
     background: linear-gradient(180deg, oklch(0.55 0.28 285), oklch(0.78 0.16 200));
@@ -103,14 +105,18 @@
   }
 
   .glass {
-    background: oklch(0.18 0.05 280 / 0.4);
-    backdrop-filter: blur(20px) saturate(160%);
+    background: oklch(0.18 0.05 280 / 0.55);
+    /* Reduced blur from 20px→10px — backdrop-filter is the #1 GPU bottleneck.
+       Lower opacity compensates visually without the heavy filter cost. */
+    backdrop-filter: blur(10px) saturate(140%);
     border: 1px solid oklch(1 0 0 / 0.1);
+    will-change: transform;
   }
   .glass-strong {
-    background: oklch(0.15 0.05 280 / 0.7);
-    backdrop-filter: blur(24px) saturate(180%);
+    background: oklch(0.15 0.05 280 / 0.8);
+    backdrop-filter: blur(14px) saturate(160%);
     border: 1px solid oklch(1 0 0 / 0.12);
+    will-change: transform;
   }
 
   .glow-primary {
@@ -130,11 +136,12 @@
     box-shadow: 0 30px 60px -20px oklch(0.55 0.28 285 / 0.5);
   }
 
-  /* Shape blur — lighter than backdrop-filter, GPU composited */
+  /* Shape blur — GPU composited layer, translateZ(0) forces hardware acceleration */
   .shape-blur {
-    filter: blur(40px);
+    filter: blur(32px);
     will-change: transform;
     transform: translateZ(0);
+    contain: layout style;
   }
 
   .grid-bg {
@@ -153,12 +160,14 @@
   .animate-float-slow { animation: float 9s ease-in-out infinite; will-change: transform; }
 
   @keyframes pulse-glow {
-    0%, 100% { opacity: 0.7; }
+    0%, 100% { opacity: 0.65; }
     50%       { opacity: 1; }
   }
-  /* Animate opacity (cheap) not box-shadow (very expensive repaint) */
+  /* opacity-only pulse — box-shadow is NOT animated to avoid costly repaints.
+     The static box-shadow is set once and the opacity change gives the illusion of pulsing glow. */
   .animate-pulse-glow {
     animation: pulse-glow 3s ease-in-out infinite;
+    will-change: opacity;
     box-shadow: 0 0 40px 0px oklch(0.55 0.28 285 / 0.8), 0 0 80px -10px oklch(0.78 0.16 200 / 0.4);
   }
 
