@@ -66,6 +66,11 @@
   --shadow-elegant: 0 20px 60px -20px oklch(0 0 0 / 0.6);
 }
 
+/* Hide the Lovable "Edit with Lovable" badge injected by the Vite plugin */
+#lovable-badge {
+  display: none !important;
+}
+
 @layer base {
   * { border-color: var(--color-border); }
   html {
