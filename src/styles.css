@@ -68,7 +68,11 @@
 
 @layer base {
   * { border-color: var(--color-border); }
-  html { scroll-behavior: smooth; }
+  html {
+    scroll-behavior: smooth;
+    /* prevent rubber-band / scroll-chaining lag */
+    overscroll-behavior-y: none;
+  }
   body {
     background: var(--color-background);
     color: var(--color-foreground);
@@ -126,6 +130,13 @@
     box-shadow: 0 30px 60px -20px oklch(0.55 0.28 285 / 0.5);
   }
 
+  /* Shape blur — lighter than backdrop-filter, GPU composited */
+  .shape-blur {
+    filter: blur(40px);
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
   .grid-bg {
     background-image:
       linear-gradient(oklch(1 0 0 / 0.04) 1px, transparent 1px),
@@ -137,20 +148,25 @@
     0%, 100% { transform: translateY(0px) rotate(0deg); }
     50% { transform: translateY(-12px) rotate(2deg); }
   }
-  .animate-float { animation: float 6s ease-in-out infinite; }
-  .animate-float-slow { animation: float 9s ease-in-out infinite; }
+  /* will-change tells GPU to pre-allocate a compositing layer */
+  .animate-float     { animation: float 6s ease-in-out infinite; will-change: transform; }
+  .animate-float-slow { animation: float 9s ease-in-out infinite; will-change: transform; }
 
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px -5px oklch(0.55 0.28 285 / 0.5); }
-    50% { box-shadow: 0 0 40px 0px oklch(0.55 0.28 285 / 0.8), 0 0 80px -10px oklch(0.78 0.16 200 / 0.4); }
+    0%, 100% { opacity: 0.7; }
+    50%       { opacity: 1; }
   }
-  .animate-pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+  /* Animate opacity (cheap) not box-shadow (very expensive repaint) */
+  .animate-pulse-glow {
+    animation: pulse-glow 3s ease-in-out infinite;
+    box-shadow: 0 0 40px 0px oklch(0.55 0.28 285 / 0.8), 0 0 80px -10px oklch(0.78 0.16 200 / 0.4);
+  }
 
   @keyframes blink { 50% { opacity: 0; } }
   .animate-blink { animation: blink 1s step-end infinite; }
 
   @keyframes spin-slow { to { transform: rotate(360deg); } }
-  .animate-spin-slow { animation: spin-slow 20s linear infinite; }
+  .animate-spin-slow { animation: spin-slow 20s linear infinite; will-change: transform; }
 
   @keyframes gradient-shift {
     0%, 100% { background-position: 0% 50%; }

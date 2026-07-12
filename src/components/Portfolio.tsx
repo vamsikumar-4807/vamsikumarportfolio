@@ -258,39 +258,46 @@ function BgVideo() {
   );
 }
 
-/* Floating geometric shapes that respond to mouse */
+/* Floating geometric shapes — mouse parallax via direct DOM refs (no React re-renders) */
+const SHAPE_DATA = [
+  { size: 200, x: "8%",  y: "20%", depth: 30, shape: "circle",   color: "oklch(0.55 0.28 285 / 0.25)", delay: "0s" },
+  { size: 120, x: "85%", y: "15%", depth: 50, shape: "square",   color: "oklch(0.78 0.16 200 / 0.2)",  delay: "0.8s" },
+  { size: 160, x: "75%", y: "70%", depth: 40, shape: "circle",   color: "oklch(0.65 0.25 250 / 0.2)",  delay: "1.6s" },
+  { size: 90,  x: "15%", y: "75%", depth: 60, shape: "triangle", color: "oklch(0.78 0.16 200 / 0.25)", delay: "2.4s" },
+] as const;
+
 function FloatingShapes() {
-  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const shapeRefs = useRef<(HTMLDivElement | null)[]>([]);
+
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
-      setMouse({ x: e.clientX / window.innerWidth - 0.5, y: e.clientY / window.innerHeight - 0.5 });
+      const mx = e.clientX / window.innerWidth - 0.5;
+      const my = e.clientY / window.innerHeight - 0.5;
+      shapeRefs.current.forEach((el, i) => {
+        if (!el) return;
+        el.style.transform = `translate(${mx * SHAPE_DATA[i].depth}px, ${my * SHAPE_DATA[i].depth}px)`;
+      });
     };
-    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mousemove", onMove, { passive: true });
     return () => window.removeEventListener("mousemove", onMove);
   }, []);
-  const shapes = [
-    { size: 200, x: "8%", y: "20%", depth: 30, shape: "circle", color: "oklch(0.55 0.28 285 / 0.25)" },
-    { size: 120, x: "85%", y: "15%", depth: 50, shape: "square", color: "oklch(0.78 0.16 200 / 0.2)" },
-    { size: 160, x: "75%", y: "70%", depth: 40, shape: "circle", color: "oklch(0.65 0.25 250 / 0.2)" },
-    { size: 90, x: "15%", y: "75%", depth: 60, shape: "triangle", color: "oklch(0.78 0.16 200 / 0.25)" },
-  ];
+
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {shapes.map((s, i) => (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      {SHAPE_DATA.map((s, i) => (
         <div
           key={i}
-          className="absolute animate-float blur-xl"
+          ref={(el) => { shapeRefs.current[i] = el; }}
+          className="absolute animate-float shape-blur"
           style={{
             left: s.x,
             top: s.y,
             width: s.size,
             height: s.size,
-            transform: `translate(${mouse.x * s.depth}px, ${mouse.y * s.depth}px)`,
-            transition: "transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)",
             background: s.color,
             borderRadius: s.shape === "circle" ? "50%" : s.shape === "square" ? "20%" : "0",
             clipPath: s.shape === "triangle" ? "polygon(50% 0%, 0% 100%, 100% 100%)" : undefined,
-            animationDelay: `${i * 0.8}s`,
+            animationDelay: s.delay,
           }}
         />
       ))}
