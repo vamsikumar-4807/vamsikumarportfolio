@@ -11,6 +11,7 @@ import { Code2, Database, Wrench, Sparkles, Server, Brain, Network, Orbit } from
 import projectAttendance from "@/assets/project-attendance.png";
 import projectHireflow from "@/assets/project-hireflow.png";
 import projectBooknest from "@/assets/project-booknest.png";
+import profilePhoto from "@/assets/profile.jpg";
 
 function OracleIcon({ size = 16, className }: { size?: number; className?: string }) {
   return (
@@ -100,7 +101,7 @@ const PROJECT_IMAGE: Record<string, string> = {
 
 const LOGO_URL = "https://tapportfolio.lovable.app/assets/logo-CxDGoOCE.png";
 const RESUME_URL = "https://drive.google.com/file/d/1Ed5VD4cKGObSBLY5LQoHQM8fupiS84_Q/view?usp=drive_link";
-const PROFILE_URL = "/profile.jpg";
+const PROFILE_URL = profilePhoto;
 const VIDEO_URL = "https://www.pexels.com/download/video/19660176/";
 
 const TYPING_ROLES = ["Frontend Developer", "Java Full Stack Web Developer", "Java Developer"];
