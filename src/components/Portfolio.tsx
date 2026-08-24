@@ -28,6 +28,23 @@ function OracleIcon({ size = 16, className }: { size?: number; className?: strin
   );
 }
 
+function JdbcIcon({ size = 16, className }: { size?: number; className?: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className={className}>
+      {/* Cup body */}
+      <path d="M7 10 Q6.5 17 12 18 Q17.5 17 17 10 Z" fill="#F89820" />
+      {/* Cup base / saucer */}
+      <ellipse cx="12" cy="18.5" rx="5.5" ry="1.2" fill="#E07010" />
+      {/* Steam swirl 1 */}
+      <path d="M10 8 Q9 6 10.5 5 Q12 4 11 2.5" stroke="#6A8FA8" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+      {/* Steam swirl 2 */}
+      <path d="M13.5 8 Q12.5 6 14 5 Q15.5 4 14.5 2.5" stroke="#6A8FA8" strokeWidth="1.2" strokeLinecap="round" fill="none" />
+      {/* Handle */}
+      <path d="M17 12 Q20 12 20 14.5 Q20 17 17 16.5" stroke="#E07010" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 type IconCmp = ComponentType<{ size?: number; color?: string; className?: string }>;
 
 const SKILL_ICON: Record<string, { Icon: IconCmp; color: string }> = {
@@ -39,6 +56,7 @@ const SKILL_ICON: Record<string, { Icon: IconCmp; color: string }> = {
   "C":           { Icon: SiC,          color: "#A8B9CC" },
   "MySQL":         { Icon: SiMysql,      color: "#4479A1" },
   "Oracle Database": { Icon: OracleIcon, color: "#C74634" },
+  "JDBC":            { Icon: JdbcIcon,   color: "#F89820" },
   "Git":           { Icon: SiGit,        color: "#F05032" },
   "VS Code":     { Icon: VscVscode,    color: "#007ACC" },
   "GitHub":      { Icon: SiGithub,     color: "#0d1117" },
@@ -81,8 +99,8 @@ const PROJECT_IMAGE: Record<string, string> = {
 /* -------------------------------------------------------------------------- */
 
 const LOGO_URL = "https://tapportfolio.lovable.app/assets/logo-CxDGoOCE.png";
-const RESUME_URL = "https://drive.google.com/file/d/1oAEQIdaHGvbKKwlSQkrQ8yJhDEfxwG5u/view?usp=drive_link";
-const PROFILE_URL = "https://drive.google.com/thumbnail?id=1vRxWV-gieITdmAnJPaOE77UNqJUBbPtf&sz=w800";
+const RESUME_URL = "https://drive.google.com/file/d/1Ed5VD4cKGObSBLY5LQoHQM8fupiS84_Q/view?usp=drive_link";
+const PROFILE_URL = "/profile.jpg";
 const VIDEO_URL = "https://www.pexels.com/download/video/19660176/";
 
 const TYPING_ROLES = ["Frontend Developer", "Java Full Stack Web Developer", "Java Developer"];
@@ -99,7 +117,7 @@ const NAV = [
 
 const SKILLS = {
   Frontend: ["HTML5", "CSS", "JavaScript", "React"],
-  Backend: ["Java", "Python", "C"],
+  Backend: ["Java", "Python", "C", "JDBC"],
   Databases: ["MySQL", "Oracle Database"],
   Tools: ["Git", "VS Code", "GitHub", "AntiGravity"],
   "AI Tools": ["Claude"],
